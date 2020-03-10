@@ -105,7 +105,7 @@ class QuickCmdManager(object):
         print("cmd = %s"%(cmd))
         return cmd
     
-    def fzf_output_parse(self):
+    def fzf_output_cmd_get(self):
         output = ''
         with codecs.open(self.fzf_output, 'r', encoding='utf-8') as fp:
             output = fp.read()
@@ -119,7 +119,17 @@ class QuickCmdManager(object):
         output = output[:pos].rstrip('\r\n\t ')
         if not output:
             return 0
-        return output
+        output = int(output) - 1
+        info = self.config[output]
+        return info
+
+    def run(self, info):
+        if "command" in info:
+            if "workdir" in info:
+                os.chdir(info["workdir"])
+            os.system(info["command"])
+        if "godir" in info:
+            os.chdir(info["godir"])
 
     def execute(self):
         self.fzf_file_prepare()
@@ -128,10 +138,8 @@ class QuickCmdManager(object):
         if code != 0:
             print("execute fzf cmd failed, code = %d"%(code))
             return code
-        index = self.fzf_output_parse()
-        index = int(index) - 1
-        info = self.config[index]
-        print(info)
+        info = self.fzf_output_cmd_get()
+        self.run(info)
 
 
 if __name__ == "__main__":
