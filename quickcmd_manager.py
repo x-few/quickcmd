@@ -102,7 +102,7 @@ class QuickCmdManager(object):
         cmd = 'fzf --nth 1 --reverse --inline-info --tac +s --height 35%'
         cmd = cmd + ' < "' + self.fzf_input + '"'
         cmd = cmd + ' > "' + self.fzf_output + '"'
-        print("cmd = %s"%(cmd))
+        #print("cmd = %s"%(cmd))
         return cmd
     
     def fzf_output_cmd_get(self):
@@ -129,14 +129,15 @@ class QuickCmdManager(object):
                 os.chdir(info["workdir"])
             os.system(info["command"])
         if "godir" in info:
-            os.chdir(info["godir"])
+            print(info["godir"])
+            #os.chdir(info["godir"])
 
     def execute(self):
         self.fzf_file_prepare()
         cmd = self.fzf_cmd_generate()
         code = os.system(cmd)
         if code != 0:
-            print("execute fzf cmd failed, code = %d"%(code))
+            #print("execute fzf cmd failed, code = %d"%(code))
             return code
         info = self.fzf_output_cmd_get()
         self.run(info)
@@ -144,7 +145,7 @@ class QuickCmdManager(object):
 
 if __name__ == "__main__":
     filename = os.getcwd() + "/cmds.ini"
-    print(filename)
+    #print(filename)
     qcconf = QuickCmdManager(filename)
     #qcconf.load_config()
     qcconf.print_config()
