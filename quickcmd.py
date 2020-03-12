@@ -5,40 +5,51 @@ import sys
 import os
 import optparse
 import argparse
-from quickcmd_manager import QuickCmdManager
-#import quickcmd_manager as qcm
+from fzf import FuzzyFinder
+from command_manager import CommandManager
 
 qc_description = """
     description
 """
-cmds_file = os.getcwd() + "/cmds.ini"
 
-
-def is_exist_bin(bin="fzf"):
-    if os.system("which " + bin) is 0:
-        return True
-    return False
-
+def default_cmddir():
+    basedir = os.path.dirname(os.path.realpath(__file__))
+    return basedir + "/commands"
 
 def main(args=None):
     # check fzf
-    if not is_exist_bin("fzf"):
+    fzf = FuzzyFinder()
+    if fzf.is_exist() is False:
         print("require fzf, please install")
-        exit(0)
+        return 0
 
     parser = argparse.ArgumentParser(description=qc_description)
     parser.add_argument(
         "-l", "--list",
         dest="list", action="store_true",
         default=False, help="list all commands")
-
+    parser.add_argument(
+        "-c", "--cmddir", dest="cmddir",
+        help="specify the command directory")
     args = parser.parse_args()
-    qcm = QuickCmdManager(cmds_file)
+    cmddir = default_cmddir()
+    if args.cmddir:
+        cmddir = args.cmddir
+    cmdmgr = CommandManager(cmddir)
+    cmds = cmdmgr.load_commands()
     if args.list:
-        qcm.print_config()
-        exit(0)
+        cmdmgr.print_commands()
+        return 0
 
-    return qcm.execute()
+    fzf.prepare_files(cmds)
+    fzf.run()
+    index = fzf.parse_output()
+    cmd = cmdmgr.get_command(index)
+    if cmd:
+        cmd.execute()
+
+    return 
 
 if __name__ == "__main__":
-    exit(main())
+    #exit(main())
+    main()

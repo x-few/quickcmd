@@ -1,0 +1,57 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+import codecs
+import tempfile
+import shutil
+
+class Command(object):
+    def __init__(self, name="", cmd="", workdir="", godir=""):
+        self.name = name
+        self.cmd = cmd
+        self.workdir = workdir
+        self.godir = godir
+
+    def set_field(self, key, value):
+        if key == "name":
+            self.name = value
+        elif key == "command":
+            self.cmd = value
+        elif key == "workdir":
+            self.workdir = value
+        elif key == "godir":
+            self.godir = value
+
+    def set_name(self, name):
+        self.name = name
+    
+    def set_cmd(self, cmd):
+        self.cmd = cmd
+
+    def set_workdir(self, workdir):
+        self.workdir = workdir
+
+    def set_godir(self, godir):
+        self.godir = godir
+
+    def execute(self):
+        print("running: ", self.tostring())
+        if self.cmd:
+            if self.workdir and os.path.exists(self.workdir):
+                os.chdir(self.workdir)
+            os.system(self.cmd)
+        
+        if self.godir:
+            os.system("echo '%s' > /tmp/.qc_cd_path"%(self.godir))
+            print("---isshe---: cd %s"%(self.godir))
+
+    def tostring(self):
+        s = """[ %s ]
+[+] command = %s
+[+] workdir = %s
+[+] godir   = %s
+"""%(self.name, self.cmd, self.workdir, self.godir)
+
+        return s
