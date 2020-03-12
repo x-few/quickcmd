@@ -1,4 +1,9 @@
 
+basepath=$(cd `dirname $0`; pwd)
+
+echo "basepath = $basepath"
+
+
 PATH=/home/isshe/Persional/coding-life/P-Projects/quickcmd:$PATH
 qc() {
     setopt localoptions noautonamedirs
