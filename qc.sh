@@ -2,25 +2,35 @@
 basepath=$(cd `dirname $0`; pwd)
 
 PATH=$basepath:$PATH
-qc() {
+
+qc_echo()
+{
+    msg=$1
+    if [ -t 1 ]; then
+        echo -e "\033[35m${msg}\033[0m"
+    else
+        echo ${msg}
+    fi
+}
+
+qc()
+{
     #setopt localoptions noautonamedirs
     # do quickcmd
-    echo "---isshe---1---"
     $basepath/quickcmd ${@}
     ret=$?
-    echo "---isshe---2---ret = $ret"
     if [ $ret -ne 0 ]; then
-        echo "quickcmd error."
-        echo "Try \`quickcmd --help\` for more information."
+        qc_echo "quickcmd error. Try \`quickcmd --help\` for more information."
+        return $ret
     fi
 
     # do cd cmd
     qc_cd_file="/tmp/.qc_cd_path"
-    echo "---isshe---: qc_cd_file = $qc_cd_file"
     if [ -f $qc_cd_file ]; then
-        cd_path=`cat "$qc_cd_file"`
-        echo "cd \"$cd_path\""
-        cd "$cd_path"
-        #rm "$qc_cd_file"
+        cd_path=`cat $qc_cd_file`
+
+        qc_echo "cd $cd_path"
+        cd $cd_path
+        rm $qc_cd_file
     fi
 }

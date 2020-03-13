@@ -14,15 +14,21 @@ class Command(object):
         self.workdir = workdir
         self.godir = godir
 
+    def abs_path(self, path):
+        if path and path.startswith("~"):
+            # os.path.join(os.path.expanduser("~"), path[1:])
+            return os.path.expanduser("~") + path[1:]
+        return path
+
     def set_field(self, key, value):
         if key == "name":
             self.name = value
         elif key == "command":
             self.cmd = value
         elif key == "workdir":
-            self.workdir = value
+            self.workdir = self.abs_path(value)
         elif key == "godir":
-            self.godir = value
+            self.godir = self.abs_path(value)
 
     def set_name(self, name):
         self.name = name
@@ -45,7 +51,6 @@ class Command(object):
         
         if self.godir:
             os.system("echo '%s' > /tmp/.qc_cd_path"%(self.godir))
-            print("---isshe---: cd %s"%(self.godir))
 
     def tostring(self):
         s = """[ %s ]
