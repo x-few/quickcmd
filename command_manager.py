@@ -7,11 +7,13 @@ import codecs
 import tempfile
 import shutil
 from command import Command
+from quickcmd_color import QuickCmdColor
 
 class CommandManager(object):
     def __init__ (self, cmddir):
         self.cmddir = cmddir
         self.commands = []
+        self.qcc = QuickCmdColor()
         # self.load_commands()
 
     def decode_content(self, ctx, codec=None):
@@ -68,7 +70,7 @@ class CommandManager(object):
                     ctx = fd.read()
                     fd.close()
                 except IOError as e:
-                    print(e)
+                    self.qcc.red_print(e)
         
                 dectx = self.decode_content(ctx)
                 self.parse_commands(dectx)
@@ -80,8 +82,13 @@ class CommandManager(object):
 
     def print_commands(self):
         if self.commands:
+            i = 0
             for cmd in self.commands:
-                print(cmd.tostring())
+                i = i + 1
+                if i % 2 == 0:
+                    self.qcc.blue_print(cmd.tostring())
+                else:
+                    self.qcc.skyblue_print(cmd.tostring())
 
     def get_command(self, index):
         if self.commands:

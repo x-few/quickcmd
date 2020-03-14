@@ -8,9 +8,7 @@ import argparse
 from fzf import FuzzyFinder
 from command_manager import CommandManager
 
-qc_description = """
-    description
-"""
+qc_description = "Quickly select and execute your command."
 
 def default_cmddir():
     basedir = os.path.dirname(os.path.realpath(__file__))
@@ -46,10 +44,10 @@ def main(args=None):
     index = fzf.parse_output()
     cmd = cmdmgr.get_command(index)
     if cmd:
+        cmd.complete()
         cmd.execute()
 
     return 
 
 if __name__ == "__main__":
-    #exit(main())
-    main()
+    exit(main())
