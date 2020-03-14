@@ -33,6 +33,7 @@ workdir = ~/.quickcmd
 
 # TODO
 * 自动化安装脚本
+* 完善编码支持
 
 # Done
 * `~/`支持

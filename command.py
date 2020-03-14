@@ -61,6 +61,7 @@ class Command(object):
 
         for key, name in variables_map.items():
             value = self.qcc.green_input(r"input %s:" % (name))
+            #value = value.decode('utf-8')
             self.cmd = self.cmd.replace(key, value)
 
     def execute(self):

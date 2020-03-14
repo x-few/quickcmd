@@ -15,6 +15,9 @@ def default_cmddir():
     return basedir + "/commands"
 
 def main(args=None):
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
     # check fzf
     fzf = FuzzyFinder()
     if fzf.is_exist() is False:
