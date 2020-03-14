@@ -1,5 +1,5 @@
 # quickcmd
-简化命令输入，也可实现一定程度的自动化构建。
+简化命令输入，再也不用记那么多命令拉。
 
 # 安装
 * 安装[fzf](https://github.com/junegunn/fzf)
