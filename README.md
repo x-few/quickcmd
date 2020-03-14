@@ -15,6 +15,16 @@ command=<命令>
 workdir=<工作目录>  # 默认当前目录
 godir=<跳转目录>    # 没有command时直接跳转
 ```
+* 示例：
+```
+# 跳转到用户根目录
+[go-home]
+godir = ~/
+
+[git-pull]
+command = git pull origin ${branch}
+workdir = ~/.quickcmd
+```
 
 # 使用
 * `qc -h`
