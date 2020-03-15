@@ -50,7 +50,5 @@ def main(args=None):
         cmd.complete()
         cmd.execute()
 
-    return 
-
 if __name__ == "__main__":
     exit(main())

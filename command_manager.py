@@ -91,6 +91,6 @@ class CommandManager(object):
                     self.qcc.skyblue_print(cmd.tostring())
 
     def get_command(self, index):
-        if self.commands:
+        if self.commands and index:
             return self.commands[index]
         return None

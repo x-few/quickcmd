@@ -29,7 +29,12 @@ class FuzzyFinder(object):
             with codecs.open(self.fzf_input, 'w', encoding='utf-8') as fp:
                 i = 1
                 for cmd in cmds:
-                    fp.write('%d:%s: %s\r\n'%(i, cmd.name, cmd.cmd))
+                    if cmd.cmd:
+                        fp.write('%d:%s: %s\r\n'%(i, cmd.name, cmd.cmd))
+                    elif cmd.godir:
+                        fp.write('%d:%s: cd %s\r\n'%(i, cmd.name, cmd.godir))
+                    else:
+                        fp.write('%d:%s: %s\r\n'%(i, cmd.name, "-"))
                     i = i + 1
 
     def run(self):
