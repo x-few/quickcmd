@@ -34,6 +34,7 @@ workdir = ~/.quickcmd
 # TODO
 * 自动化安装脚本
 * 完善编码支持
+* 快捷添加快捷命令
 
 # Done
 * `~/`支持
