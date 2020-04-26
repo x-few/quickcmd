@@ -47,8 +47,8 @@ def main(args=None):
     index = fzf.parse_output()
     cmd = cmdmgr.get_command(index)
     if cmd:
-        cmd.complete()
-        cmd.execute()
+        if cmd.complete():
+            cmd.execute()
 
 if __name__ == "__main__":
     exit(main())

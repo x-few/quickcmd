@@ -47,7 +47,7 @@ class Command(object):
 
     def complete(self):
         if not self.cmd:
-            return None
+            return False
 
         pt = re.compile(r'\${\w+}')
         variables = pt.findall(self.cmd)
@@ -60,9 +60,13 @@ class Command(object):
             variables_map[variable] = name.group(1)
 
         for key, name in variables_map.items():
-            value = self.qcc.green_input(r"input %s:" % (name))
-            #value = value.decode('utf-8')
-            self.cmd = self.cmd.replace(key, value)
+            try:
+                value = self.qcc.green_input(r"input %s:" % (name))
+                #value = value.decode('utf-8')
+                self.cmd = self.cmd.replace(key, value)
+            except KeyboardInterrupt:
+                return False
+        return True
 
     def execute(self):
         self.qcc.purple_print(self.tostring())
