@@ -5,8 +5,8 @@ qc_python_script="$qc_script_path/quickcmd.py"
 
 if [ ! -e "$qc_python_script" ]; then
     qc_script_path=$(readlink "$0")
-    qc_script_path=$(cd `dirname "$0"`; pwd)
-    qc_python_script="$SCRIPTPATH/quickcmd.py"
+    # qc_script_path=$(cd `dirname "$0"`; pwd)
+    qc_python_script="$qc_script_path/quickcmd.py"
 fi
 
 qc_echo()
@@ -36,9 +36,12 @@ qc()
             /usr/bin/python3 "$qc_python_script" "$@"
         elif [ -x "/usr/bin/python2" ]; then
             /usr/bin/python2 "$qc_python_script" "$@"
+        else
+            qc_echo "Error: not found python"
+            return 1
         fi
     else
-        qc_echo "Error: not find quickcmd.py" 
+        qc_echo "Error: not found quickcmd.py" 
         return 1
     fi
 
@@ -49,7 +52,7 @@ qc()
     fi
 
     # do cd cmd
-    qc_cd_file="$qc_script_path/.qc_cd_path"
+    qc_cd_file="$qc_script_path/.qc.cd.path"
     if [ -f $qc_cd_file ]; then
         cd_path=`cat $qc_cd_file`
 
