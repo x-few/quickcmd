@@ -9,6 +9,7 @@ from fzf import FuzzyFinder
 from command_manager import CommandManager
 
 qc_description = "Quickly select and execute your command."
+qcdir = ".quickcmd"
 
 
 def get_script_path():
@@ -33,12 +34,12 @@ def install_quickcmd():
         print("Error: get user path failed")
         return False
     script_path = get_script_path()
-    cmd = "cp -r {} {}/.quickcmd".format(script_path, userpath)
+    cmd = "cp -r {} {}/{}".format(script_path, userpath, qcdir)
     ret = os.system(cmd)
     if ret != 0:
         print("Error: {}", cmd)
         return False
-    qcfile = "{}/.quickcmd/quickcmd.sh".format(userpath)
+    qcfile = "{}/{}/quickcmd.sh".format(userpath, qcdir)
     zshfile = "{}/.zshrc".format(userpath)
     bashfile = "{}/.bashrc".format(userpath)
     if os.path.exists(zshfile):
@@ -54,19 +55,25 @@ def uninstall_quickmd():
     if not userpath:
         print("Error: get user path failed")
         return False
-    qcpath = "{}/.quickcmd".format(userpath)
+    qcpath = "{}/{}".format(userpath, qcdir)
     if os.path.exists(qcpath):
         cmd = "rm -rf {}".format(qcpath)
         os.system(cmd)
     zshfile = "{}/.zshrc".format(userpath)
     bashfile = "{}/.bashrc".format(userpath)
     if os.path.exists(zshfile):
-        cmd = "sed '/.quickcmd/d' {0} > /tmp/.quick.rc; cp /tmp/.quick.rc {0}".format(zshfile)
+        cmd = "sed '/{0}/d' {1} > /tmp/.quick.rc; cp /tmp/.quick.rc {1}".format(qcdir, zshfile)
         os.system(cmd)
     if os.path.exists(bashfile):
-        cmd = "sed '/.quickcmd/d' {0} > /tmp/.quick.rc; cp /tmp/.quick.rc {0}".format(bashfile)
+        cmd = "sed '/{0}/d' {1} > /tmp/.quick.rc; cp /tmp/.quick.rc {1}".format(qcdir, bashfile)
         os.system(cmd)
-    
+
+def update_quickcmd():
+    # 进入安装目录，进行 git pull
+    userpath = os.path.expanduser("~")
+    inspath = '{}/{}'.format(userpath, qcdir)
+    cmd = "cd {}; git pull origin master".format(inspath)
+    os.system(cmd)
 
 def main(args=None):
     reload(sys)
@@ -89,8 +96,8 @@ def main(args=None):
                         help="delete a quick command")
     parser.add_argument("-m", "--modcmd", dest="modcmd", action="store_true", default=False, 
                         help="modify a quick command")
-    parser.add_argument("-f", "--fix", dest="fix", action="store_true", default=False, 
-                        help="fix myself: install fzf...")
+    parser.add_argument("-p", "--update", dest="update", action="store_true", default=False, 
+                        help="update quickcmd")
     parser.add_argument("-i", "--install", dest="install", action="store_true", default=False, 
                         help="install quickcmd")
     parser.add_argument("-u", "--uninstall", dest="uninstall", action="store_true", default=False, 
@@ -114,8 +121,8 @@ def main(args=None):
         cmdmgr.set_action_del()
     if args.modcmd:
         cmdmgr.set_action_mod()
-    if args.fix:
-        # TODO
+    if args.update:
+        update_quickcmd()
         return 0
     if args.install:
         install_quickcmd()
