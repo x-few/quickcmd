@@ -61,11 +61,13 @@ class Command(object):
 
         pt = re.compile(r'\${\w+}')
         variables = pt.findall(self.command)
+        variables = set(variables)
 
         for variable in variables:
             m = re.match(r'^\${(\w+)}$', variable)
             name = m.group(1)
             try:
+                self.qcc.purple_print(self.command)
                 value = self.qcc.green_input(r"input %s:" % (name))
                 self.command = self.command.replace(variable, value)
             except KeyboardInterrupt:

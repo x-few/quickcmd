@@ -27,6 +27,47 @@ def print_details():
     print("install directory: {}".format(get_script_path()))
 
 
+def install_quickcmd():
+    userpath = os.path.expanduser("~")
+    if not userpath:
+        print("Error: get user path failed")
+        return False
+    script_path = get_script_path()
+    cmd = "cp -r {} {}/.quickcmd".format(script_path, userpath)
+    ret = os.system(cmd)
+    if ret != 0:
+        print("Error: {}", cmd)
+        return False
+    qcfile = "{}/.quickcmd/quickcmd.sh".format(userpath)
+    zshfile = "{}/.zshrc".format(userpath)
+    bashfile = "{}/.bashrc".format(userpath)
+    if os.path.exists(zshfile):
+        cmd = 'echo "source {}" >> {}'.format(qcfile, zshfile)
+        os.system(cmd)
+    if os.path.exists(bashfile):
+        cmd = 'echo "source {}" >> {}'.format(qcfile, bashfile)
+        os.system(cmd)
+    return True
+
+def uninstall_quickmd():
+    userpath = os.path.expanduser("~")
+    if not userpath:
+        print("Error: get user path failed")
+        return False
+    qcpath = "{}/.quickcmd".format(userpath)
+    if os.path.exists(qcpath):
+        cmd = "rm -rf {}".format(qcpath)
+        os.system(cmd)
+    zshfile = "{}/.zshrc".format(userpath)
+    bashfile = "{}/.bashrc".format(userpath)
+    if os.path.exists(zshfile):
+        cmd = "sed '/.quickcmd/d' {0} > /tmp/.quick.rc; cp /tmp/.quick.rc {0}".format(zshfile)
+        os.system(cmd)
+    if os.path.exists(bashfile):
+        cmd = "sed '/.quickcmd/d' {0} > /tmp/.quick.rc; cp /tmp/.quick.rc {0}".format(bashfile)
+        os.system(cmd)
+    
+
 def main(args=None):
     reload(sys)
     sys.setdefaultencoding('utf-8')
@@ -50,6 +91,10 @@ def main(args=None):
                         help="modify a quick command")
     parser.add_argument("-f", "--fix", dest="fix", action="store_true", default=False, 
                         help="fix myself: install fzf...")
+    parser.add_argument("-i", "--install", dest="install", action="store_true", default=False, 
+                        help="install quickcmd")
+    parser.add_argument("-u", "--uninstall", dest="uninstall", action="store_true", default=False, 
+                        help="uninstall quickcmd")
 
     cmddir = get_def_cmd_path()
     cmdmgr = CommandManager(cmddir)
@@ -71,6 +116,12 @@ def main(args=None):
         cmdmgr.set_action_mod()
     if args.fix:
         # TODO
+        return 0
+    if args.install:
+        install_quickcmd()
+        return 0
+    if args.uninstall:
+        uninstall_quickmd()
         return 0
 
     cmdmgr.load_cmds()
