@@ -44,7 +44,7 @@ class CommandManager(object):
                 configs = parser.all()
                 #all_config += configs
                 self.to_cmds(inifile, configs)
-        
+
         #self.to_cmds(inifile, all_config)
         # return self.commands
 
@@ -66,12 +66,18 @@ class CommandManager(object):
             return self.commands[index]
         return None
 
-    def gen_config(self, name, cmd, godir):
+    def gen_config(self, name, cmd, godir, tip):
         configs = list()
+
         if cmd:
             configs.append(("command", cmd))
+
         if godir:
             configs.append(("godir", godir))
+
+        if tip:
+            configs.append(("tip", tip))
+
         return name, configs
 
     def add_cmd(self):
@@ -82,10 +88,12 @@ class CommandManager(object):
                 continue
             cmd = self.qcc.green_input("command: ")
             godir = self.qcc.green_input("cd directory: ")
-            if not (cmd or godir):
-                self.qcc.red_print("both command and godir empty")
+            tip = self.qcc.lines_input("tip: ")
+            if not (cmd or godir or tip):
+                self.qcc.red_print("command/godir/tip you need input at least one")
                 continue
             break
+
         # print cmd file
         print(name)
         files = os.listdir(self.cmddir)
@@ -131,13 +139,13 @@ class CommandManager(object):
             elif select_num > 0 and select_num < i:
                 # select file
                 cmdfile = "{}/{}".format(self.cmddir,
-                                         cmdfiles[select_num - 1])
+                                        cmdfiles[select_num - 1])
                 break
             else:
                 # invalid select
                 self.qcc.red_print("invalid input")
 
-        section, configs = self.gen_config(name, cmd, godir)
+        section, configs = self.gen_config(name, cmd, godir, tip)
         print("command file: {}".format(cmdfile))
         parser = iniparser.IniParser(cmdfile)
         parser.add(section, configs)
@@ -152,24 +160,36 @@ class CommandManager(object):
         parser.save_or_remove()
         pass
 
-    def mod_cmd(self, cmd):
-        cmdfile = cmd.get_file()
-        old_section = cmd.get_name()
+    def mod_cmd(self, cmd_obj):
+        cmdfile = cmd_obj.get_file()
+        old_name = cmd_obj.get_name()
+        old_cmd = cmd_obj.get_cmd()
+        old_godir = cmd_obj.get_godir()
+        old_tip = cmd_obj.get_tip()
         new_configs = []
+
         while True:
-            name = self.qcc.green_input("command name(直接回车不修改): ")
+            name = self.qcc.green_input("command name: ")
             cmd = self.qcc.green_input("command: ")
             godir = self.qcc.green_input("cd directory: ")
-            if not (cmd or godir):
-                self.qcc.red_print("both command and godir empty")
-                continue
-            break
+            tip = self.qcc.lines_input("tip: ")
+
         if not name:
-            name = old_section
-        new_section, new_configs = self.gen_config(name, cmd, godir)
-        self.qcc.red_print("modify {} to {} in {}".format(old_section, new_section, cmdfile))
+            name = old_name
+
+        if not cmd:
+            cmd = old_cmd
+
+        if not godir:
+            godir = old_godir
+
+        if not tip:
+            tip = old_tip
+
+        new_section, new_configs = self.gen_config(name, cmd, godir, tip)
+        self.qcc.red_print("modify {} to {} in {}".format(old_name, new_section, cmdfile))
         parser = iniparser.IniParser(cmdfile)
-        parser.mod(old_section, new_section, new_configs)
+        parser.mod(old_name, new_section, new_configs)
         parser.save()
 
     def set_action_del(self):

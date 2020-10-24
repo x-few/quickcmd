@@ -14,6 +14,7 @@ class Command(object):
         self.set_workdir(infos.get("workdir", ""))
         self.godir = infos.get("godir", "")
         self.desc = infos.get("desc", "")
+        self.tip = infos.get("tip", "")
         self.file = file
         self.name = name
         self.qcc = QuickCmdColor()
@@ -36,6 +37,8 @@ class Command(object):
             self.workdir = self.abs_path(value)
         elif key == "godir":
             self.godir = self.abs_path(value)
+        elif key == "tip":
+            self.tip = value
 
     def get_file(self):
         return self.file
@@ -49,11 +52,23 @@ class Command(object):
     def set_cmd(self, command):
         self.command = command
 
+    def get_cmd(self):
+        return self.command
+
     def set_workdir(self, workdir):
         self.workdir = self.abs_path(workdir)
 
     def set_godir(self, godir):
         self.godir = godir
+
+    def get_godir(self):
+        return self.godir
+
+    def set_tip(self, tip):
+        self.tip = tip
+
+    def get_tip(self):
+        return self.tip
 
     def complete(self):
         if not self.command:
@@ -84,7 +99,7 @@ class Command(object):
         if self.godir:
             godir = self.abs_path(self.godir)
             os.system("echo '%s' > %s/.qc.cd.path" %
-                      (godir, self.script_path()))
+                    (godir, self.script_path()))
 
     def tostring(self):
         s = "[%s]" % (self.name)
@@ -94,6 +109,8 @@ class Command(object):
             s = "%s\n[+] workdir = %s" % (s, self.workdir)
         if self.godir:
             s = "%s\n[+] godir   = %s" % (s, self.godir)
+        if self.tip:
+            s = "%s\n[+] tip   = %s" % (s, self.tip)
         if self.file:
             s = "%s\n[+] in file = %s" %(s, self.file)
         return s
@@ -104,6 +121,9 @@ class Command(object):
             res = "{}: {}".format(res, self.command)
         elif self.godir:
             res = "{}; cd {}".format(res, self.godir)
+        elif self.tip:
+            res = "{}; tip: {}".format(res, self.tip)
+
         res = "{}\r\n".format(res)
         return res
 

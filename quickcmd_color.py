@@ -39,34 +39,49 @@ class QuickCmdColor(object):
 
     def black_print(self, msg):
         self.color_print(self.black, msg)
+
     def red_print(self, msg):
         self.color_print(self.red, msg)
+
     def green_print(self, msg):
         self.color_print(self.green, msg)
+
     def orange_print(self, msg):
         self.color_print(self.yellow, msg)
+
     def blue_print(self, msg):
         self.color_print(self.blue, msg)
+
     def purple_print(self, msg):
         self.color_print(self.purple, msg)
+
     def cyan_print(self, msg):
         self.color_print(self.cyan, msg)
+
     def light_gray_print(self, msg):
         self.color_print(self.light_gray, msg)
+
     def dark_gray_print(self, msg):
         self.color_print(self.dark_gray, msg)
+
     def light_red_print(self, msg):
         self.color_print(self.light_red, msg)
+
     def light_green_print(self, msg):
         self.color_print(self.light_green, msg)
+
     def yellow_print(self, msg):
         self.color_print(self.yellow, msg)
+
     def light_blue_print(self, msg):
         self.color_print(self.light_blue, msg)
+
     def light_perple_print(self, msg):
         self.color_print(self.light_purple, msg)
+
     def light_cyan_print(self, msg):
         self.color_print(self.light_cyan, msg)
+
     def white_print(self, msg):
         self.color_print(self.white, msg)
 
@@ -87,3 +102,14 @@ class QuickCmdColor(object):
 
     def green_input(self, msg):
         return self.color_input(self.green, msg)
+
+    def lines_input(self, msg):
+        lines = []
+        while True:
+            line = self.green_input(msg)
+            if line:
+                lines.append(line)
+            else:
+                break
+        text = '\n'.join(lines)
+        return text
