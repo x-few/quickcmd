@@ -14,9 +14,10 @@ import iniparser
 
 
 class CommandManager(object):
-    def __init__(self, cmddir):
-        self.def_qc_file = cmddir + "/default.ini"
-        self.cmddir = cmddir
+    def __init__(self, ex_cmd_dirs, def_cmd_dir):
+        self.def_qc_file = def_cmd_dir + "/default.ini"
+        self.def_cmd_dir = def_cmd_dir
+        self.ex_cmd_dirs = ex_cmd_dirs
         self.commands = []
         self.qcc = QuickCmdColor()
         self.cp = None
@@ -30,11 +31,11 @@ class CommandManager(object):
             self.commands.append(cmd)
 
     def load_cmds(self):
-        if not os.path.exists(self.cmddir):
+        if not os.path.exists(self.def_cmd_dir):
             return None
 
         #all_config = []
-        for path, _, files in os.walk(self.cmddir):
+        for path, _, files in os.walk(self.def_cmd_dir):
             for filename in files:
                 # 跳过非 ini 文件
                 if not filename.endswith(".ini"):
@@ -44,7 +45,7 @@ class CommandManager(object):
                 configs = parser.all()
                 #all_config += configs
                 self.to_cmds(inifile, configs)
-        
+
         #self.to_cmds(inifile, all_config)
         # return self.commands
 
@@ -88,7 +89,7 @@ class CommandManager(object):
             break
         # print cmd file
         print(name)
-        files = os.listdir(self.cmddir)
+        files = os.listdir(self.def_cmd_dir)
         cmdfiles = []
         for file in files:
             if file.endswith(".ini"):
@@ -122,7 +123,7 @@ class CommandManager(object):
                         newfn = self.qcc.green_input("input new filename: ")
                         if newfn:
                             break
-                    cmdfile = "{}/{}".format(self.cmddir, newfn)
+                    cmdfile = "{}/{}".format(self.def_cmd_dir, newfn)
                     if not newfn.endswith(".ini"):
                         cmdfile = "{}.ini".format(cmdfile)
                     if not os.path.exists(cmdfile):
@@ -130,8 +131,8 @@ class CommandManager(object):
                 break
             elif select_num > 0 and select_num < i:
                 # select file
-                cmdfile = "{}/{}".format(self.cmddir,
-                                         cmdfiles[select_num - 1])
+                cmdfile = "{}/{}".format(self.def_cmd_dir,
+                                        cmdfiles[select_num - 1])
                 break
             else:
                 # invalid select
@@ -157,7 +158,7 @@ class CommandManager(object):
         old_section = cmd.get_name()
         new_configs = []
         while True:
-            name = self.qcc.green_input("command name(直接回车不修改): ")
+            name = self.qcc.green_input("command name('n/N' not): ")
             cmd = self.qcc.green_input("command: ")
             godir = self.qcc.green_input("cd directory: ")
             if not (cmd or godir):

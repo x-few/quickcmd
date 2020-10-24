@@ -7,6 +7,7 @@ import optparse
 import argparse
 from fzf import FuzzyFinder
 from command_manager import CommandManager
+from quickcmd_config import QcConfig
 
 qc_description = "Quickly select and execute your command."
 qcdir = ".quickcmd"
@@ -16,6 +17,9 @@ def get_script_path():
     basedir = os.path.dirname(os.path.realpath(__file__))
     return basedir
 
+def get_config_file():
+    basedir = get_script_path()
+    return basedir + "/config/config.json"
 
 def get_def_cmd_path():
     basedir = get_script_path()
@@ -86,41 +90,46 @@ def main(args=None):
         return 0
 
     parser = argparse.ArgumentParser(description=qc_description)
-    parser.add_argument("-l", "--list", dest="list", action="store_true", default=False, 
+    parser.add_argument("-l", "--list", dest="list", action="store_true", default=False,
                         help="list all commands")
-    parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, 
+    parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False,
                         help="get details")
-    parser.add_argument("-a", "--addcmd", dest="addcmd", action="store_true", default=False, 
+    parser.add_argument("-a", "--addcmd", dest="addcmd", action="store_true", default=False,
                         help="add a quick command")
-    parser.add_argument("-d", "--delcmd", dest="delcmd", action="store_true", default=False, 
+    parser.add_argument("-d", "--delcmd", dest="delcmd", action="store_true", default=False,
                         help="delete a quick command")
-    parser.add_argument("-m", "--modcmd", dest="modcmd", action="store_true", default=False, 
+    parser.add_argument("-m", "--modcmd", dest="modcmd", action="store_true", default=False,
                         help="modify a quick command")
-    parser.add_argument("-p", "--update", dest="update", action="store_true", default=False, 
+    parser.add_argument("-p", "--update", dest="update", action="store_true", default=False,
                         help="update quickcmd")
-    parser.add_argument("-i", "--install", dest="install", action="store_true", default=False, 
+    parser.add_argument("-i", "--install", dest="install", action="store_true", default=False,
                         help="install quickcmd")
-    parser.add_argument("-u", "--uninstall", dest="uninstall", action="store_true", default=False, 
+    parser.add_argument("-u", "--uninstall", dest="uninstall", action="store_true", default=False,
                         help="uninstall quickcmd")
 
-    cmddir = get_def_cmd_path()
-    cmdmgr = CommandManager(cmddir)
+    ex_cmd_dirs = None
+    config = QcConfig(get_config_file())
+    if config.parse() :
+        ex_cmd_dirs = config.get_command_paths()
+
+    def_cmd_path = get_def_cmd_path()
+    cmd_mgr = CommandManager(ex_cmd_dirs, def_cmd_path)
 
     args = parser.parse_args()
     if args.list:
-        cmdmgr.load_cmds()
-        cmdmgr.print_cmds()
+        cmd_mgr.load_cmds()
+        cmd_mgr.print_cmds()
         return 0
     if args.verbose:
         print_details()
         return 0
     if args.addcmd:
-        cmdmgr.add_cmd()
+        cmd_mgr.add_cmd()
         return 0
     if args.delcmd:
-        cmdmgr.set_action_del()
+        cmd_mgr.set_action_del()
     if args.modcmd:
-        cmdmgr.set_action_mod()
+        cmd_mgr.set_action_mod()
     if args.update:
         update_quickcmd()
         return 0
@@ -131,15 +140,15 @@ def main(args=None):
         uninstall_quickmd()
         return 0
 
-    cmdmgr.load_cmds()
-    cmds = cmdmgr.get_cmds()
+    cmd_mgr.load_cmds()
+    cmds = cmd_mgr.get_cmds()
 
     fzf.prepare_files(cmds)
     fzf.run()
     index = fzf.parse_output()
-    cmd = cmdmgr.get_cmd(index)
+    cmd = cmd_mgr.get_cmd(index)
     if cmd:
-        cmdmgr.do_action(cmd)
+        cmd_mgr.do_action(cmd)
 
 
 if __name__ == "__main__":
