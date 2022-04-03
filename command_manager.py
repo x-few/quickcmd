@@ -62,7 +62,7 @@ class CommandManager(object):
                     self.qcc.light_green_print(cmd.tostring())
 
     def get_cmd(self, index):
-        if self.commands and index >= 0:
+        if self.commands and index is not None and index >= 0:
             return self.commands[index]
         return None
 

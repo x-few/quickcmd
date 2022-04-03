@@ -76,8 +76,9 @@ def update_quickcmd():
     os.system(cmd)
 
 def main(args=None):
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
+    if sys.version[0] == '2':
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
 
     # check fzf
     fzf = FuzzyFinder()
