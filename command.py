@@ -5,7 +5,7 @@ import os
 import sys
 import re
 from quickcmd_color import QuickCmdColor
-
+from chatgpt import ChatGPT
 
 class Command(object):
     def __init__(self, file="", name="", items=[]):
@@ -15,8 +15,32 @@ class Command(object):
         self.godir = infos.get("godir", "")
         self.desc = infos.get("desc", "")
         self.tip = infos.get("tip", "")
+        self.api_key = infos.get("api_key", "")
+        self.multi_line_question = infos.get("multi_line_question", False)
         self.file = file
-        self.name = name
+
+        if self.command:
+            prefix = "[CMD] "
+            self.cmd_type = "cmd"
+
+        elif self.godir:
+            self.cmd_type = "cd"
+            prefix = "[GOTO] "
+
+        elif self.tip:
+            self.cmd_type = "tip"
+            prefix = "[TIP] "
+
+        elif self.api_key:
+            self.cmd_type = "chatgpt"
+            prefix = "[ChatGPT] "
+
+        else:
+            sys.exit("Unknown command")
+
+        self.name = prefix + name
+        self.name = self.name.replace(" ", "-")
+
         self.qcc = QuickCmdColor()
 
     def abs_path(self, path):
@@ -71,7 +95,11 @@ class Command(object):
         return self.tip
 
     def complete(self):
+        """
+        Completing the command
+        """
         if not self.command:
+            # not a command
             return True
 
         pt = re.compile(r'\${\w+}')
@@ -81,38 +109,86 @@ class Command(object):
         for variable in variables:
             m = re.match(r'^\${(\w+)}$', variable)
             name = m.group(1)
+
             try:
                 self.qcc.purple_print(self.command)
                 value = self.qcc.green_input(r"input %s:" % (name))
                 self.command = self.command.replace(variable, value)
+
             except KeyboardInterrupt:
                 return False
+
         return True
 
     def execute(self):
-        self.qcc.purple_print(self.tostring())
-        if self.command:
+        self.qcc.light_blue_print(self.tostring())
+        if self.cmd_type == "cmd":
             if self.workdir and os.path.exists(self.workdir):
                 os.chdir(self.workdir)
             os.system(self.command)
 
-        if self.godir:
+        elif self.cmd_type == "cd":
             godir = self.abs_path(self.godir)
             os.system("echo '%s' > %s/.qc.cd.path" %
                     (godir, self.script_path()))
 
+        elif self.cmd_type == "chatgpt":
+            if self.multi_line_question:
+                s = "[!] Please enter your question, ending with a new line containing only \"\F\": "
+            else:
+                s = "[!] Please enter your question: "
+
+            lines = []
+            while True:
+                line = self.qcc.yellow_input(s)
+
+                if not self.multi_line_question:
+                    lines.append(line)
+                    break
+
+                if s is not None:
+                    s = None
+
+                if line == "\F" or line == "\\f":
+                    break
+
+                lines.append(line)
+
+            self.chatgpt = ChatGPT(self.api_key)
+
+            self.qcc.yellow_print("[!] Sending Request to ChatGPT ...")
+
+            choices, total_tokens = self.chatgpt.ask_question("\n".join(lines))
+
+            i = 1
+            for answer in choices:
+                self.qcc.yellow_print("[+] Answer " + str(i) + ":")
+                message = answer.get('message', {})
+                content = message.get('content', None)
+                if content:
+                    print(content)
+
+                i = i + 1
+
+            self.qcc.yellow_print("[!] Spent tokens: " + str(total_tokens))
+
     def tostring(self):
         s = "[%s]" % (self.name)
-        if self.command:
-            s = "%s\n[+] command = %s" % (s, self.command)
-        if self.workdir:
-            s = "%s\n[+] workdir = %s" % (s, self.workdir)
-        if self.godir:
-            s = "%s\n[+] godir   = %s" % (s, self.godir)
-        if self.tip:
-            s = "%s\n[+] tip   = %s" % (s, self.tip)
+
+        if self.cmd_type == "cmd":
+            s = "%s\n[+] Command = %s" % (s, self.command)
+            if self.workdir:
+                s = "%s\n[+] Workdir: %s" % (s, self.workdir)
+
+        elif self.cmd_type == "cd":
+            s = "%s\n[+] Goto: %s" % (s, self.godir)
+
+        elif self.cmd_type == "tip":
+            s = "%s\n[+] Tip = %s" % (s, self.tip)
+
         if self.file:
-            s = "%s\n[+] in file = %s" %(s, self.file)
+            s = "%s\n[+] In file = %s" %(s, self.file)
+
         return s
 
     def fzf_str(self, index):

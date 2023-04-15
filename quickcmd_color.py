@@ -76,7 +76,7 @@ class QuickCmdColor(object):
     def light_blue_print(self, msg):
         self.color_print(self.light_blue, msg)
 
-    def light_perple_print(self, msg):
+    def light_purple_print(self, msg):
         self.color_print(self.light_purple, msg)
 
     def light_cyan_print(self, msg):
@@ -85,25 +85,36 @@ class QuickCmdColor(object):
     def white_print(self, msg):
         self.color_print(self.white, msg)
 
-    def color_input(self, color, msg):
+    def color_input(self, color, msg=None):
         try:
             if sys.version_info.major == 2:
-                return raw_input(color + msg + self.end)
+                if msg is not None:
+                    return raw_input(color + msg + self.end)
+                else:
+                    return raw_input()
+
             else:
-                return input(color + msg + self.end)
+                if msg is not None:
+                    return input(color + msg + self.end)
+                else:
+                    return input()
+
         except KeyboardInterrupt:
             sys.exit(0)
 
-    def purple_input(self, msg):
+    def purple_input(self, msg=None):
         return self.color_input(self.purple, msg)
 
-    def blue_input(self, msg):
+    def blue_input(self, msg=None):
         return self.color_input(self.blue, msg)
 
-    def green_input(self, msg):
+    def yellow_input(self, msg=None):
+        return self.color_input(self.yellow, msg)
+
+    def green_input(self, msg=None):
         return self.color_input(self.green, msg)
 
-    def lines_input(self, msg):
+    def lines_input(self, msg=None):
         lines = []
         while True:
             line = self.green_input(msg)

@@ -87,21 +87,21 @@ def main(args=None):
         return 0
 
     parser = argparse.ArgumentParser(description=qc_description)
-    parser.add_argument("-l", "--list", dest="list", action="store_true", default=False, 
+    parser.add_argument("-l", "--list", dest="list", action="store_true", default=False,
                         help="list all commands")
-    parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, 
+    parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False,
                         help="get details")
-    parser.add_argument("-a", "--addcmd", dest="addcmd", action="store_true", default=False, 
+    parser.add_argument("-a", "--addcmd", dest="addcmd", action="store_true", default=False,
                         help="add a quick command")
-    parser.add_argument("-d", "--delcmd", dest="delcmd", action="store_true", default=False, 
+    parser.add_argument("-d", "--delcmd", dest="delcmd", action="store_true", default=False,
                         help="delete a quick command")
-    parser.add_argument("-m", "--modcmd", dest="modcmd", action="store_true", default=False, 
+    parser.add_argument("-m", "--modcmd", dest="modcmd", action="store_true", default=False,
                         help="modify a quick command")
-    parser.add_argument("-p", "--update", dest="update", action="store_true", default=False, 
+    parser.add_argument("-p", "--update", dest="update", action="store_true", default=False,
                         help="update quickcmd")
-    parser.add_argument("-i", "--install", dest="install", action="store_true", default=False, 
+    parser.add_argument("-i", "--install", dest="install", action="store_true", default=False,
                         help="install quickcmd")
-    parser.add_argument("-u", "--uninstall", dest="uninstall", action="store_true", default=False, 
+    parser.add_argument("-u", "--uninstall", dest="uninstall", action="store_true", default=False,
                         help="uninstall quickcmd")
 
     cmddir = get_def_cmd_path()
@@ -131,6 +131,8 @@ def main(args=None):
     if args.uninstall:
         uninstall_quickmd()
         return 0
+
+    cmdmgr.set_action_run()
 
     cmdmgr.load_cmds()
     cmds = cmdmgr.get_cmds()

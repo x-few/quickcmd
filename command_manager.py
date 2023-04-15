@@ -20,7 +20,6 @@ class CommandManager(object):
         self.commands = []
         self.qcc = QuickCmdColor()
         self.cp = None
-        self.set_action_run()
 
     def to_cmds(self, inifile, configs):
         #self.commands = []
@@ -66,32 +65,73 @@ class CommandManager(object):
             return self.commands[index]
         return None
 
-    def gen_config(self, name, cmd, godir, tip):
+    def gen_config(self, name, config_dict):
         configs = list()
 
-        if cmd:
-            configs.append(("command", cmd))
-
-        if godir:
-            configs.append(("godir", godir))
-
-        if tip:
-            configs.append(("tip", tip))
+        for key, value in config_dict.items():
+            configs.append((key, value))
 
         return name, configs
 
     def add_cmd(self):
+        config_dict = None
+
         while True:
-            name = self.qcc.green_input("command name: ")
+            config_dict = dict()
+
+            name = self.qcc.green_input("Command name: ")
             if not name:
                 self.qcc.red_print("invalid command name!")
                 continue
-            cmd = self.qcc.green_input("command: ")
-            godir = self.qcc.green_input("cd directory: ")
-            tip = self.qcc.lines_input("tip: ")
-            if not (cmd or godir or tip):
-                self.qcc.red_print("command/godir/tip you need input at least one")
-                continue
+
+            cmd_type = self.qcc.green_input("\n1.command\n2.change directory\n3.tip\n4.ChatGPT\nCommand type: ")
+            if int(cmd_type) == 1:
+                cmd = self.qcc.green_input("Command: ")
+                if not cmd:
+                    self.qcc.red_print("Bad command")
+                    continue
+
+                config_dict["command"] = cmd
+
+            elif int(cmd_type) == 2:
+                godir = self.qcc.green_input("Directory: ")
+                if not godir:
+                    self.qcc.red_print("Bad directory " + godir)
+                    continue
+
+                if not os.path.exists(godir):
+                    self.qcc.red_print("Directory not found: " + godir)
+                    continue
+
+                config_dict["godir"] = godir
+
+            elif int(cmd_type) == 3:
+                tip = self.qcc.lines_input("Tip: ")
+                if not tip:
+                    self.qcc.red_print("Bad Tip")
+                    continue
+
+                config_dict["tip"] = tip
+
+            elif int(cmd_type) == 4:
+                api_key = self.qcc.green_input("API Key: ")
+                if not api_key:
+                    self.qcc.red_print("Bad API Key")
+                    continue
+
+                config_dict["api_key"] = api_key
+
+                multi_line = self.qcc.green_input("Do you want to enter multiple lines? [Y/N]: ")
+                if multi_line and (multi_line == "Yes" or multi_line == "YES" or multi_line == "Y" or multi_line == "y"):
+                    multi_line = True
+
+                else:
+                    multi_line = False
+
+                config_dict["multi_line_question"] = multi_line
+
+                # TODO try to ask a question to check if the API key is valid
+
             break
 
         # print cmd file
@@ -145,7 +185,7 @@ class CommandManager(object):
                 # invalid select
                 self.qcc.red_print("invalid input")
 
-        section, configs = self.gen_config(name, cmd, godir, tip)
+        section, configs = self.gen_config(name, config_dict)
         print("command file: {}".format(cmdfile))
         parser = iniparser.IniParser(cmdfile)
         parser.add(section, configs)

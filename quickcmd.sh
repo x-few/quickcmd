@@ -41,7 +41,7 @@ qc()
             return 1
         fi
     else
-        qc_echo "Error: not found quickcmd.py" 
+        qc_echo "Error: not found quickcmd.py"
         return 1
     fi
 
@@ -54,10 +54,10 @@ qc()
     # do cd cmd
     qc_cd_file="$qc_script_path/.qc.cd.path"
     if [ -f $qc_cd_file ]; then
-        cd_path=`cat $qc_cd_file`
+        cd_path=$(cat $qc_cd_file)
 
-        qc_echo "cd $cd_path"
+        # qc_echo "cd $cd_path"
         cd $cd_path
-        rm $qc_cd_file
+        rm -f $qc_cd_file
     fi
 }
