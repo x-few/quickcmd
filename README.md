@@ -3,7 +3,7 @@
 
 # 安装
 
-* 安装[fzf](https://github.com/junegunn/fzf)
+* 安装 [fzf](https://github.com/junegunn/fzf)
 
 * 安装 python 依赖
 
