@@ -19,7 +19,7 @@ pip3 install requests
 - 下载 quickcmd
 
 ```bash
-git clone https://github.com/i-sout/quickcmd.git ~/.quickcmd
+git clone --depth 1 https://github.com/x-few/quickcmd.git ~/.quickcmd
 ```
 
 - 在`~/.bashrc`或`~/.zshrc`或其他终端配置文件中，添加:
