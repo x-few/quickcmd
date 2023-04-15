@@ -93,6 +93,13 @@ class CommandManager(object):
 
                 config_dict["command"] = cmd
 
+                workdir = self.qcc.green_input("Work Directory: ")
+                if not workdir:
+                    self.qcc.red_print("Bad work directory")
+                    continue
+
+                config_dict["workdir"] = workdir
+
             elif int(cmd_type) == 2:
                 godir = self.qcc.green_input("Directory: ")
                 if not godir:
