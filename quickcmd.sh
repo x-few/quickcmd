@@ -2,6 +2,7 @@
 
 qc_script_path=$(cd `dirname "$0"`; pwd)
 qc_python_script="$qc_script_path/quickcmd.py"
+qc_venv_path="$qc_script_path/.qcvenv"
 
 if [ ! -e "$qc_python_script" ]; then
     qc_script_path=$(readlink "$0")
@@ -24,22 +25,31 @@ qc()
     #setopt localoptions noautonamedirs
     # do quickcmd
     if [ -e "$qc_python_script" ]; then
-        if [ -x "$(which python 2> /dev/null)" ]; then
-            python "$qc_python_script" "$@"
-        elif [ -x "$(which python3 2> /dev/null)" ]; then
-            python3 "$qc_python_script" "$@"
-        elif [ -x "$(which python2 2> /dev/null)" ]; then
-            python2 "$qc_python_script" "$@"
-        elif [ -x "/usr/bin/python" ]; then
-            /usr/bin/python "$qc_python_script" "$@"
-        elif [ -x "/usr/bin/python3" ]; then
-            /usr/bin/python3 "$qc_python_script" "$@"
-        elif [ -x "/usr/bin/python2" ]; then
-            /usr/bin/python2 "$qc_python_script" "$@"
+        # Check if virtual environment exists, if not create it
+        if [ ! -d "$qc_venv_path" ]; then
+            qc_echo "Creating virtual environment..."
+            python3 -m venv "$qc_venv_path"
+
+            # Activate virtual environment
+            source "$qc_venv_path/bin/activate"
+
+            # Install or upgrade pip
+            qc_echo "Upgrading pip..."
+            pip install --upgrade pip
+
+            # Install dependencies
+            qc_echo "Checking and installing dependencies..."
+            pip install -r "$qc_script_path/requirements.txt"
         else
-            qc_echo "Error: not found python"
-            return 1
+            # Activate virtual environment
+            source "$qc_venv_path/bin/activate"
         fi
+
+        # Execute Python script in virtual environment
+        python "$qc_python_script" "$@"
+
+        # Deactivate virtual environment
+        deactivate
     else
         qc_echo "Error: not found quickcmd.py"
         return 1
