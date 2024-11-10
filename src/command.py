@@ -129,7 +129,7 @@ class Command(object):
 
         elif self.cmd_type == "cd":
             godir = self.abs_path(self.godir)
-            os.system("echo '%s' > %s/.qc.cd.path" %
+            os.system("echo '%s' > %s/../.qc.cd.path" %
                     (godir, self.script_path()))
 
         elif self.cmd_type == "chatgpt":

@@ -19,7 +19,7 @@ def get_script_path():
 
 def get_def_cmd_path():
     basedir = get_script_path()
-    return basedir + "/commands"
+    return basedir + "/../commands"
 
 
 def print_details():

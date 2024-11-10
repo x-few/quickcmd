@@ -1,12 +1,11 @@
 #!/bin/sh
 
-qc_script_path=$(cd `dirname "$0"`; pwd)
-qc_python_script="$qc_script_path/quickcmd.py"
+qc_script_path=$(cd "$(dirname "$0")" || exit; pwd)
+qc_python_script="$qc_script_path/src/quickcmd.py"
 
 if [ ! -e "$qc_python_script" ]; then
     qc_script_path=$(readlink "$0")
-    # qc_script_path=$(cd `dirname "$0"`; pwd)
-    qc_python_script="$qc_script_path/quickcmd.py"
+    qc_python_script="$qc_script_path/src/quickcmd.py"
 fi
 
 qc_echo()
@@ -53,11 +52,11 @@ qc()
 
     # do cd cmd
     qc_cd_file="$qc_script_path/.qc.cd.path"
-    if [ -f $qc_cd_file ]; then
-        cd_path=$(cat $qc_cd_file)
+    if [ -f "$qc_cd_file" ]; then
+        cd_path=$(cat "$qc_cd_file")
 
         # qc_echo "cd $cd_path"
-        cd $cd_path
-        rm -f $qc_cd_file
+        cd "$cd_path"
+        rm -f "$qc_cd_file"
     fi
 }
