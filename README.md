@@ -4,33 +4,8 @@
 
 ## 安装
 
-### 1. 安装依赖
-
-- 安装 [fzf](https://github.com/junegunn/fzf)
-
 ```bash
-git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install
-```
-
-- 安装 Python 依赖
-
-```bash
-pip3 install requests
-```
-
-### 2. 安装 quickcmd
-
-```bash
-git clone --depth 1 https://github.com/x-few/quickcmd.git ~/.quickcmd
-```
-
-### 3. 配置
-
-在`~/.bashrc`或`~/.zshrc`或其他终端配置文件中，添加:
-
-```bash
-[[ -s "~/.quickcmd/quickcmd.sh" ]] && source "~/.quickcmd/quickcmd.sh"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/x-few/quickcmd/master/install.sh)"
 ```
 
 ## 添加快捷命令
