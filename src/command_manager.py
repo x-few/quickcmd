@@ -10,8 +10,7 @@ from command import Command
 from quickcmd_color import QuickCmdColor
 import platform
 import iniparser
-# import ConfigParser
-
+from stock_analyzer import run_stock_analysis_workflow
 
 class CommandManager(object):
     def __init__(self, cmddir):
@@ -22,7 +21,6 @@ class CommandManager(object):
         self.cp = None
 
     def to_cmds(self, inifile, configs):
-        #self.commands = []
         for config in configs:
             section, options = config
             cmd = Command(inifile, section, options)
@@ -32,20 +30,14 @@ class CommandManager(object):
         if not os.path.exists(self.cmddir):
             return None
 
-        #all_config = []
         for path, _, files in os.walk(self.cmddir):
             for filename in files:
-                # 跳过非 ini 文件
                 if not filename.endswith(".ini"):
                     continue
                 inifile = os.path.join(path, filename)
                 parser = iniparser.IniParser(inifile)
                 configs = parser.all()
-                #all_config += configs
                 self.to_cmds(inifile, configs)
-
-        #self.to_cmds(inifile, all_config)
-        # return self.commands
 
     def get_cmds(self):
         return self.commands
@@ -61,16 +53,14 @@ class CommandManager(object):
                     self.qcc.light_green_print(cmd.tostring())
 
     def get_cmd(self, index):
-        if self.commands and index is not None and index >= 0:
+        if self.commands and index is not None and index >= 0 and index < len(self.commands):
             return self.commands[index]
         return None
 
     def gen_config(self, name, config_dict):
         configs = list()
-
         for key, value in config_dict.items():
             configs.append((key, value))
-
         return name, configs
 
     def add_cmd(self):
@@ -84,79 +74,63 @@ class CommandManager(object):
                 self.qcc.red_print("invalid command name!")
                 continue
 
-            cmd_type = self.qcc.green_input("\n1.command\n2.change directory\n3.tip\n4.ChatGPT\nCommand type: ")
-            if int(cmd_type) == 1:
+            cmd_type_prompt = "\n1.command\n2.change directory\n3.tip\n4.ChatGPT\n5.Stock Analysis\nCommand type: "
+            cmd_type = self.qcc.green_input(cmd_type_prompt)
+
+            if not cmd_type.isdigit():
+                self.qcc.red_print("Invalid selection.")
+                continue
+
+            cmd_type = int(cmd_type)
+
+            if cmd_type == 1:
                 cmd = self.qcc.green_input("Command: ")
                 if not cmd:
                     self.qcc.red_print("Bad command")
                     continue
-
                 config_dict["command"] = cmd
-
                 workdir = self.qcc.green_input("Work Directory: ")
                 config_dict["workdir"] = workdir
-
-            elif int(cmd_type) == 2:
+            elif cmd_type == 2:
                 godir = self.qcc.green_input("Directory: ")
-                if not godir:
-                    self.qcc.red_print("Bad directory " + godir)
+                if not godir or not os.path.exists(godir):
+                    self.qcc.red_print("Bad or non-existent directory: " + godir)
                     continue
-
-                if not os.path.exists(godir):
-                    self.qcc.red_print("Directory not found: " + godir)
-                    continue
-
                 config_dict["godir"] = godir
-
-            elif int(cmd_type) == 3:
+            elif cmd_type == 3:
                 tip = self.qcc.lines_input("Tip: ")
                 if not tip:
                     self.qcc.red_print("Bad Tip")
                     continue
-
                 config_dict["tip"] = tip
-
-            elif int(cmd_type) == 4:
+            elif cmd_type == 4:
                 api_key = self.qcc.green_input("API Key: ")
                 if not api_key:
                     self.qcc.red_print("Bad API Key")
                     continue
-
                 config_dict["api_key"] = api_key
-
                 multi_line = self.qcc.green_input("Do you want to enter multiple lines? [Y/N]: ")
-                if multi_line and (multi_line == "Yes" or multi_line == "YES" or multi_line == "Y" or multi_line == "y"):
-                    multi_line = True
-
-                else:
-                    multi_line = False
-
-                config_dict["multi_line_question"] = multi_line
-
-                # TODO try to ask a question to check if the API key is valid
+                config_dict["multi_line_question"] = multi_line.lower() in ['y', 'yes']
+            elif cmd_type == 5:
+                config_dict["type"] = "stock"
+            else:
+                self.qcc.red_print("Invalid command type!")
+                continue
 
             break
 
-        # print cmd file
-        print(name)
-        files = os.listdir(self.cmddir)
-        cmdfiles = []
-        for file in files:
-            if file.endswith(".ini"):
-                cmdfiles.append(file)
-
+        files = [f for f in os.listdir(self.cmddir) if f.endswith(".ini")]
         cmdfile = None
         while True:
             i = 1
-            for file in cmdfiles:
+            for file in files:
                 self.qcc.blue_print("{}: {}".format(i, file))
                 i += 1
             self.qcc.red_print("{}: new file".format(i))
-            select = self.qcc.green_input("please select: ")     # 直接回车就是默认文件
+            select = self.qcc.green_input("please select: ")
             select = select.strip()
-            # 生成命令
+
             if select == "":
-                # default file
                 cmdfile = self.def_qc_file
                 break
 
@@ -166,26 +140,14 @@ class CommandManager(object):
 
             select_num = int(select)
             if select_num == i:
-                # new file
-                while True:
-                    newfn = None
-                    while True:
-                        newfn = self.qcc.green_input("input new filename: ")
-                        if newfn:
-                            break
-                    cmdfile = "{}/{}".format(self.cmddir, newfn)
-                    if not newfn.endswith(".ini"):
-                        cmdfile = "{}.ini".format(cmdfile)
-                    if not os.path.exists(cmdfile):
-                        break
-                break
-            elif select_num > 0 and select_num < i:
-                # select file
-                cmdfile = "{}/{}".format(self.cmddir,
-                                        cmdfiles[select_num - 1])
+                newfn = self.qcc.green_input("input new filename (without .ini): ")
+                if newfn:
+                    cmdfile = "{}/{}.ini".format(self.cmddir, newfn)
+                    break
+            elif 0 < select_num < i:
+                cmdfile = os.path.join(self.cmddir, files[select_num - 1])
                 break
             else:
-                # invalid select
                 self.qcc.red_print("invalid input")
 
         section, configs = self.gen_config(name, config_dict)
@@ -196,12 +158,11 @@ class CommandManager(object):
 
     def del_cmd(self, cmd):
         cmdfile = cmd.get_file()
-        section = cmd.get_name()
+        section = cmd.get_name().split(']', 1)[1].replace('-', ' ') # Get original name
         self.qcc.red_print("delete {} from {}".format(section, cmdfile))
         parser = iniparser.IniParser(cmdfile)
         parser.delete(section)
         parser.save_or_remove()
-        pass
 
     def mod_cmd(self, cmd_obj):
         cmdfile = cmd_obj.get_file()
@@ -246,7 +207,10 @@ class CommandManager(object):
 
     def do_action(self, cmd):
         if self.action == "run":
-            if cmd.complete():
+            cmd_type = cmd.get_type()
+            if cmd_type == "stock":
+                run_stock_analysis_workflow()
+            elif cmd.complete():
                 return cmd.execute()
         elif self.action == "del":
             return self.del_cmd(cmd)

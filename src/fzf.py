@@ -29,7 +29,10 @@ class FuzzyFinder(object):
             with codecs.open(self.fzf_input, 'w', encoding='utf-8') as fp:
                 i = 1
                 for cmd in cmds:
-                    fp.write(cmd.fzf_str(i))
+                    if isinstance(cmd, str):
+                        fp.write("{:0>3}: {}\n".format(i, cmd))
+                    else:
+                        fp.write(cmd.fzf_str(i))
                     i = i + 1
 
     def run(self):
