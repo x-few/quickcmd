@@ -1,12 +1,19 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
+import json
 import akshare as ak
 import pandas as pd
-import os
 from iniparser import IniParser
 from quickcmd_color import QuickCmdColor
 from fzf import FuzzyFinder
+from datetime import datetime, timedelta
+from stock_info import get_stock_info_cn_cached, \
+    get_stock_info_hk_cached, \
+    get_stock_info_us_cached, \
+    get_stock_individual_info, \
+    get_stock_quote
 
 class FactorManager:
     def __init__(self, config_path, stock_code, stock_name, industry):
@@ -65,9 +72,10 @@ class FactorManager:
 
 
 class StockAnalyzer:
-    def __init__(self, stock_code, stock_name):
+    def __init__(self, stock_code, stock_name, stock_share):
         self.stock_code = stock_code
         self.stock_name = stock_name
+        self.stock_share = stock_share
         self.qcc = QuickCmdColor()
         self.data = {}
 
@@ -77,12 +85,18 @@ class StockAnalyzer:
         return "N/A"
 
     def analyze(self):
+        if self.stock_share not in ["A-Share", "HK-Stock"]:
+            self.qcc.red_print(f"Unsupported stock share: {self.stock_share}")
+            return None
+
         try:
-            self.qcc.blue_print(f"Fetching data for {self.stock_name} ({self.stock_code})...")
+            self.qcc.blue_print(f"Fetching data for {self.stock_name} ({self.stock_code}, {self.stock_share})...")
 
             # Fetch all necessary data
-            self.data['profile'] = ak.stock_individual_info_em(symbol=self.stock_code)
-            self.data['quote'] = ak.stock_zh_a_spot_em(symbol=self.stock_code) if self.stock_code.isdigit() else ak.stock_hk_spot_em(symbol=self.stock_code)
+            self.data['profile'] = get_stock_individual_info(stock_code=self.stock_code, stock_share=self.stock_share)
+            self.data['quote'] =get_stock_quote(stock_code=self.stock_code, stock_share=self.stock_share)
+            print(f"---isshe---: profile: {self.data['profile']}, quote: {self.data['quote']}")
+            #
             self.data['cash_flow'] = ak.stock_cash_flow_sheet_by_report_em(symbol=self.stock_code)
             self.data['balance_sheet'] = ak.stock_balance_sheet_by_report_em(symbol=self.stock_code)
             self.data['income_statement'] = ak.stock_financial_analysis_indicator(symbol=self.stock_code)
@@ -156,7 +170,7 @@ class StockAnalyzer:
             self.qcc.red_print("This might be due to data availability for the selected stock (e.g., non-A-shares, new listings).")
 
 
-def search_stocks(keyword):
+def search_stocks(keyword, us=False):
     """
     Search for stocks across different markets.
     """
@@ -164,21 +178,45 @@ def search_stocks(keyword):
     qcc.blue_print(f"Searching for '{keyword}'...")
     try:
         all_results = []
+        keyword_lower = keyword.lower()
 
         # A-shares
-        stock_a_df = ak.stock_info_a_code_name()
-        result_a = stock_a_df[stock_a_df.apply(lambda row: keyword.lower() in str(row['code']).lower() or keyword.lower() in str(row['name']).lower(), axis=1)].copy()
-        if not result_a.empty:
-            result_a['market'] = 'A-Share'
-            all_results.append(result_a[['code', 'name', 'market']])
+        stock_a_list = get_stock_info_cn_cached()
+        result_a = [
+            stock for stock in stock_a_list
+            if keyword_lower in str(stock['code']).lower() or
+            keyword_lower in str(stock['name']).lower()
+        ]
+        if result_a:
+            # list is not empty
+            result_df = pd.DataFrame(result_a)
+            result_df['market'] = 'A-Share'
+            all_results.append(result_df[['code', 'name', 'market']])
 
-        # TODO HK-shares
-        # stock_hk_df = ak.stock_info_hk_name()
-        # result_hk = stock_hk_df[stock_hk_df.apply(lambda row: keyword.lower() in str(row['代码']).lower() or keyword.lower() in str(row['名称']).lower(), axis=1)].copy()
-        # if not result_hk.empty:
-        #     result_hk = result_hk.rename(columns={'代码': 'code', '名称': 'name'})
-        #     result_hk['market'] = 'HK-Share'
-        #     all_results.append(result_hk[['code', 'name', 'market']])
+        # HK-Stock
+        stock_hk_list = get_stock_info_hk_cached()
+        result_hk = [
+            stock for stock in stock_hk_list
+            if keyword_lower in str(stock['code']).lower() or
+            keyword_lower in str(stock['name']).lower()
+        ]
+        if result_hk:
+            result_df = pd.DataFrame(result_hk)
+            result_df['market'] = 'HK-Stock'
+            all_results.append(result_df[['code', 'name', 'market']])
+
+        if us:
+            # US-Stock
+            stock_us_list = get_stock_info_us_cached()
+            result_us = [
+                stock for stock in stock_us_list
+                if keyword_lower in str(stock['code']).lower() or
+                keyword_lower in str(stock['name']).lower()
+            ]
+            if result_us:
+                result_df = pd.DataFrame(result_us)
+                result_df['market'] = 'US-Stock'
+                all_results.append(result_df[['code', 'name', 'market']])
 
         if not all_results:
             return []
@@ -216,5 +254,6 @@ def run_stock_analysis_workflow():
         parts = selected.split(' - ')
         stock_code = parts[0]
         stock_name = parts[1]
-        analyzer = StockAnalyzer(stock_code, stock_name)
+        stock_share = parts[2]
+        analyzer = StockAnalyzer(stock_code, stock_name, stock_share)
         analyzer.analyze()

@@ -133,4 +133,5 @@ dmypy.json
 commands/
 .qc.cd.path
 request.txt
+*_cache.json
 
