@@ -132,3 +132,6 @@ dmypy.json
 .DS_Store
 commands/
 .qc.cd.path
+request.txt
+*_cache.json
+

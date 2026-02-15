@@ -17,31 +17,35 @@ class Command(object):
         self.tip = infos.get("tip", "")
         self.api_key = infos.get("api_key", "")
         self.multi_line_question = infos.get("multi_line_question", False)
+        self.type = infos.get("type", "")
         self.file = file
 
-        if self.command:
+        if self.type == "stock":
+            self.cmd_type = "stock"
+            prefix = "[STOCK] "
+        elif self.command:
             prefix = "[CMD] "
             self.cmd_type = "cmd"
-
         elif self.godir:
             self.cmd_type = "cd"
             prefix = "[GOTO] "
-
         elif self.tip:
             self.cmd_type = "tip"
             prefix = "[TIP] "
-
         elif self.api_key:
             self.cmd_type = "chatgpt"
             prefix = "[ChatGPT] "
-
         else:
-            sys.exit("Unknown command")
+            sys.exit(f"Unknown command: {self.type}")
+
 
         self.name = prefix + name
         self.name = self.name.replace(" ", "-")
 
         self.qcc = QuickCmdColor()
+
+    def get_type(self):
+        return self.cmd_type
 
     def abs_path(self, path):
         if path and path.startswith("~"):
@@ -108,6 +112,7 @@ class Command(object):
 
         for variable in variables:
             m = re.match(r'^\${(\w+)}$', variable)
+            # m = re.match(r'^\${(\w+)}', variable)
             name = m.group(1)
 
             try:
@@ -186,6 +191,9 @@ class Command(object):
         elif self.cmd_type == "tip":
             s = "%s\n[+] Tip = %s" % (s, self.tip)
 
+        elif self.cmd_type == "stock":
+            s = "%s\n[+] Type = Stock Analysis" % (s)
+
         if self.file:
             s = "%s\n[+] In file = %s" %(s, self.file)
 
@@ -199,7 +207,10 @@ class Command(object):
             res = "{}; cd {}".format(res, self.godir)
         elif self.tip:
             res = "{}; tip: {}".format(res, self.tip)
+        elif self.cmd_type == "stock":
+            res = "{}: {}".format(res, "Perform stock analysis")
 
-        res = "{}\r\n".format(res)
+
+        res = "{}\n".format(res)
         return res
 
